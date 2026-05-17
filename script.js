@@ -51,16 +51,23 @@ class MechanickyDil extends ZakladniDil {
 }
 class SpotrebniMaterial extends ZakladniDil {
     zivotnostKm;
+<<<<<<< HEAD
     objemMl;
     constructor(id, nazev, nakupniCena, minimalniStav, zivotnostKm, objemMl) {
         super(id, nazev, nakupniCena, minimalniStav);
         this.zivotnostKm = zivotnostKm;
         this.objemMl = objemMl;
+=======
+    constructor(id, nazev, nakupniCena, minimalniStav, zivotnostKm) {
+        super(id, nazev, nakupniCena, minimalniStav);
+        this.zivotnostKm = zivotnostKm;
+>>>>>>> 0ac9a5cdfa2bd96fef29d014f4223e6ecb83af77
     }
     vypocitejKoncovouCenu() {
         return Math.round(this.nakupniCena * 1.40);
     }
     vypisDetail() {
+<<<<<<< HEAD
         let detail = `[Spotřebák] ${this.nazev} | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
         if (this.zivotnostKm) {
             detail += ` | Životnost: ${this.zivotnostKm}km`;
@@ -69,6 +76,9 @@ class SpotrebniMaterial extends ZakladniDil {
             detail += ` | Objem: ${this.objemMl}ml`;
         }
         return detail;
+=======
+        return `[Spotřebák] ${this.nazev} | Životnost: ${this.zivotnostKm}km | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
+>>>>>>> 0ac9a5cdfa2bd96fef29d014f4223e6ecb83af77
     }
 }
 class ElektroKomponent extends ZakladniDil {
@@ -98,7 +108,11 @@ katalog.forEach((surovaData) => {
             novyDil = new MechanickyDil(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.material, surovaData.hmotnost);
         }
         else if (surovaData.typ === "spotrebni") {
+<<<<<<< HEAD
             novyDil = new SpotrebniMaterial(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.zivotnostKm, surovaData.objemMl);
+=======
+            novyDil = new SpotrebniMaterial(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.zivotnostKm);
+>>>>>>> 0ac9a5cdfa2bd96fef29d014f4223e6ecb83af77
         }
         else if (surovaData.typ === "elektro") {
             novyDil = new ElektroKomponent(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.kapacitaWh, surovaData.verzeFirmwaru);
