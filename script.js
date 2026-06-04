@@ -1,6 +1,5 @@
 import { KATALOG_DILU } from './data.js';
 // logika kodu oop
-// OPAVENÁ ABSTRAKTNÍ TŘÍDA - nahraď jí tu původní ve script.ts
 class ZakladniDil {
     id;
     nazev;
@@ -16,9 +15,7 @@ class ZakladniDil {
         }
         this.nakupniCena = nakupniCena;
     }
-    // =======================================================
-    // NOVÉ PRVKY: Getter, setter a metoda pro kontrolu skladu
-    // =======================================================
+    //Getter, setter a metoda pro kontrolu skladu
     // Getter: Umožní programu zvenku bezpečně přečíst stav skladu
     get skladoveMnozstvi() {
         return this._skladoveMnozstvi;
@@ -33,11 +30,10 @@ class ZakladniDil {
             this._skladoveMnozstvi = hodnota;
         }
     }
-    // Veřejná metoda: Zjistí, zda aktuální stav klesl pod minimum
+    //Zjistí, zda aktuální stav klesl pod minimum
     jePotrebaObjednat() {
         return this._skladoveMnozstvi < this.minimalniStav;
     }
-    // =======================================================
     set nakupniCena(hodnota) {
         if (hodnota <= 0) {
             console.warn(`[Varování] Cena u "${this.nazev}" je neplatná (${hodnota} Kč). Nastavuji na 1 Kč.`);
@@ -109,9 +105,10 @@ class ElektroKomponent extends ZakladniDil {
         return `[Elektro] ${this.nazev} | Baterie: ${this.kapacitaWh}Wh | FW: ${this.verzeFirmwaru} | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
     }
 }
-// hlavní logika aplikace
+// ==========================================
+// 4. INICIALIZACE A OŽIVENÍ DAT Z ČÍSELNÍKU
+// ==========================================
 const skladCykloServisu = [];
-//SurovyDil jako typ pro objekty z JS souboru
 const katalog = KATALOG_DILU;
 katalog.forEach((surovaData) => {
     try {
@@ -132,83 +129,174 @@ katalog.forEach((surovaData) => {
         skladCykloServisu.push(novyDil);
     }
     catch (error) {
-        console.error("Chyba při vytváření objektu:", error);
+        console.error("Chyba při naskladnění z číselníku:", error);
     }
 });
 // ==========================================
-// 4. FUNKCE PRO SPRÁVU SKLADU (Příprava pro UI)
+// 5. DOM ELEMENTY A GLOBÁLNÍ STAV FILTRU
 // ==========================================
-/**
- * Spočítá celkovou hodnotu veškerého zboží na skladě v koncových cenách
- */
-function vypocitejCelkovouHodnotuSkladu() {
-    let celkovaSuma = 0;
-    skladCykloServisu.forEach(dil => {
-        // Hodnota položky = množství na skladě * její koncová cena
-        celkovaSuma += dil.skladoveMnozstvi * dil.vypocitejKoncovouCenu();
+let aktualniFiltr = "vse"; // Tady si pamatujeme, co má tabulka zrovna ukazovat
+const htmlTabulkaBody = document.getElementById("sklad-tabulka-body");
+const htmlStatsHodnota = document.getElementById("stats-celkova-hodnota");
+const htmlStatsKriticke = document.getElementById("stats-pocet-kritickych");
+const formular = document.getElementById("sklad-form");
+const selectTyp = document.getElementById("form-typ");
+// Políčka formuláře
+const inputNazev = document.getElementById("form-nazev");
+const inputCena = document.getElementById("form-cena");
+const inputMinimum = document.getElementById("form-minimum");
+const inputMnozstvi = document.getElementById("form-mnozstvi");
+// Specifické boxy pro skrývání
+const boxMaterial = document.getElementById("box-material");
+const boxHmotnost = document.getElementById("box-hmotnost");
+const boxZivotnost = document.getElementById("box-zivotnost");
+const boxObjem = document.getElementById("box-objem");
+const boxKapacita = document.getElementById("box-kapacita");
+const boxFirmware = document.getElementById("box-firmware");
+// ==========================================
+// 6. LOGIKA FORMULÁŘE (Skrývání políček podle typu)
+// ==========================================
+selectTyp.addEventListener("change", () => {
+    const zvolenyTyp = selectTyp.value;
+    boxMaterial.style.display = "none";
+    boxHmotnost.style.display = "none";
+    boxZivotnost.style.display = "none";
+    boxObjem.style.display = "none";
+    boxKapacita.style.display = "none";
+    boxFirmware.style.display = "none";
+    if (zvolenyTyp === "mechanicky") {
+        boxMaterial.style.display = "block";
+        boxHmotnost.style.display = "block";
+    }
+    else if (zvolenyTyp === "spotrebni") {
+        boxZivotnost.style.display = "block";
+        boxObjem.style.display = "block";
+    }
+    else if (zvolenyTyp === "elektro") {
+        boxKapacita.style.display = "block";
+        boxFirmware.style.display = "block";
+    }
+});
+// ==========================================
+// 7. OŽIVENÍ FILTRŮ (To, co minule chybělo!)
+// ==========================================
+const tlacitkaFiltru = document.querySelectorAll(".btn-filtr");
+tlacitkaFiltru.forEach(tlacitko => {
+    tlacitko.addEventListener("click", () => {
+        // Aktivní vizuální třídu vezmeme všem a dáme ji jen tomu, na které se kliklo
+        tlacitkaFiltru.forEach(btn => btn.classList.remove("aktivni"));
+        tlacitko.classList.add("aktivni");
+        // Uložíme si hodnotu filtru (vse, mechanicky, spotrebni, elektro, kriticke)
+        aktualniFiltr = tlacitko.getAttribute("data-filtr") || "vse";
+        // Překreslíme tabulku podle nového filtru
+        aktualizujWeboveRozhrani();
     });
-    return celkovaSuma;
+});
+// ==========================================
+// 8. VYKRESLENÍ INTERFACOVÉHO UI (S podporou filtrů)
+// ==========================================
+function aktualizujWeboveRozhrani() {
+    htmlTabulkaBody.innerHTML = "";
+    let celkovaHodnotaSkladu = 0;
+    let pocetKritickychDilu = 0;
+    skladCykloServisu.forEach(dil => {
+        const rizikovyStav = dil.jePotrebaObjednat();
+        // Statistiky počítáme VŽDY z celého skladu, bez ohledu na zapnutý filtr
+        if (rizikovyStav)
+            pocetKritickychDilu++;
+        celkovaHodnotaSkladu += dil.skladoveMnozstvi * dil.vypocitejKoncovouCenu();
+        // KROK FILTROVÁNÍ: Pokud položka neodpovídá filtru, přeskočíme ji a nevykreslíme
+        if (aktualniFiltr !== "vse") {
+            if (aktualniFiltr === "kriticke" && !rizikovyStav)
+                return;
+            if (aktualniFiltr === "mechanicky" && !(dil instanceof MechanickyDil))
+                return;
+            if (aktualniFiltr === "spotrebni" && !(dil instanceof SpotrebniMaterial))
+                return;
+            if (aktualniFiltr === "elektro" && !(dil instanceof ElektroKomponent))
+                return;
+        }
+        let specifickyText = "";
+        if (dil instanceof MechanickyDil) {
+            specifickyText = `Mat: ${dil.material}, Váha: ${dil.hmotnost}g`;
+        }
+        else if (dil instanceof SpotrebniMaterial) {
+            const ziv = dil.zivotnostKm ? `${dil.zivotnostKm}km` : "-";
+            const obj = dil.objemMl ? `${dil.objemMl}ml` : "-";
+            specifickyText = `Životnost: ${ziv}, Obj: ${obj}`;
+        }
+        else if (dil instanceof ElektroKomponent) {
+            specifickyText = `Kapacita: ${dil.kapacitaWh}Wh, FW: ${dil.verzeFirmwaru}`;
+        }
+        const radek = document.createElement("tr");
+        if (rizikovyStav) {
+            radek.style.backgroundColor = "#ffdddd"; // Červený řádek pro kritické zboží
+        }
+        radek.innerHTML = `
+            <td><strong>${dil.constructor.name.replace("Dil", "").replace("Komponent", "")}</strong></td>
+            <td>${dil.nazev}</td>
+            <td>${dil.skladoveMnozstvi} ks</td>
+            <td>${dil.minimalniStav} ks</td>
+            <td>${dil.vypocitejKoncovouCenu()} Kč</td>
+            <td><small>${specifickyText}</small></td>
+            <td>
+                <button class="btn-akce" onclick="upravMnozstviNaWebu(${dil.id}, 1)">+</button>
+                <button class="btn-akce" onclick="upravMnozstviNaWebu(${dil.id}, -1)">-</button>
+            </td>
+        `;
+        htmlTabulkaBody.appendChild(radek);
+    });
+    htmlStatsHodnota.innerText = `${celkovaHodnotaSkladu.toLocaleString()} Kč`;
+    htmlStatsKriticke.innerText = `${pocetKritickychDilu} ks`;
 }
-/**
- * Vrátí pole všech dílů, jejichž stav na skladě klesl pod stanovené minimum
- */
-function ziskejDilyPodMinimem() {
-    // Využijeme vestavěnou JS funkci filter a naši metodu z bázové třídy
-    return skladCykloServisu.filter(dil => dil.jePotrebaObjednat());
-}
-/**
- * Funkce, kterou později zavolá HTML formulář při odeslání.
- * Nasimuluje přidání úplně nového dílu majitelem servisu.
- */
-function naskladniNovyZcelaUnikatniDil(surovaData, pocatecniMnozstvi) {
+// ==========================================
+// 9. ZPRACOVÁNÍ FORMULÁŘE (Bezpečně s try-catch)
+// ==========================================
+formular.addEventListener("submit", (event) => {
+    event.preventDefault();
     try {
+        const id = Date.now();
+        const typ = selectTyp.value;
+        const nazev = inputNazev.value;
+        const cena = Number(inputCena.value);
+        const minimum = Number(inputMinimum.value);
+        const mnozstvi = Number(inputMnozstvi.value);
         let novyDil;
-        // Naše známá formička na oživení objektu
-        if (surovaData.typ === "mechanicky") {
-            novyDil = new MechanickyDil(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.material, surovaData.hmotnost);
+        if (typ === "mechanicky") {
+            const mat = document.getElementById("form-material").value || "neurčeno";
+            const vah = Number(document.getElementById("form-hmotnost").value) || 0;
+            novyDil = new MechanickyDil(id, nazev, cena, minimum, mat, vah);
         }
-        else if (surovaData.typ === "spotrebni") {
-            novyDil = new SpotrebniMaterial(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.zivotnostKm, surovaData.objemMl);
-        }
-        else if (surovaData.typ === "elektro") {
-            novyDil = new ElektroKomponent(surovaData.id, surovaData.nazev, surovaData.nakupniCena, surovaData.minimalniStav, surovaData.kapacitaWh, surovaData.verzeFirmwaru);
+        else if (typ === "spotrebni") {
+            const ziv = document.getElementById("form-zivotnost").value ? Number(document.getElementById("form-zivotnost").value) : undefined;
+            const obj = document.getElementById("form-objem").value ? Number(document.getElementById("form-objem").value) : undefined;
+            novyDil = new SpotrebniMaterial(id, nazev, cena, minimum, ziv, obj);
         }
         else {
-            throw new Error("Neznámý typ dílu!");
+            const kap = Number(document.getElementById("form-kapacita").value) || 0;
+            const fmw = document.getElementById("form-firmware").value || "1.0.0";
+            novyDil = new ElektroKomponent(id, nazev, cena, minimum, kap, fmw);
         }
-        novyDil.pridatNaSklad(pocatecniMnozstvi);
+        novyDil.pridatNaSklad(mnozstvi);
         skladCykloServisu.push(novyDil);
-        console.log(`[Úspěch] Do skladu byl úspěšně přidán nový díl: ${novyDil.nazev}`);
+        // Reset a vyčištění formuláře po úspěšném přidání
+        formular.reset();
+        selectTyp.dispatchEvent(new Event("change"));
+        // Okamžité překreslení
+        aktualizujWeboveRozhrani();
     }
     catch (error) {
-        console.error("Nepodařilo se přidat díl z formuláře:", error);
+        // Pokud například zadáš prázdný název, chytí se to tady a vyskočí alert, takže uživatel ví, co se děje
+        alert(`Chyba při přidávání dílu: ${error.message}`);
     }
-}
-// ==========================================
-// 5. TEST NOVÝCH FUNKCÍ V KONZOLI
-// ==========================================
-console.log("\n=== TEST STATISTIK PRO UI ===");
-// Vyzkoušíme výpočet celkové hodnoty
-console.log(`Celková hodnota skladu: ${vypocitejCelkovouHodnotuSkladu()} Kč`);
-// Nasimulujeme situaci, že nám u některého dílu klesne počet pod minimum
-// Vybereme např. hned první díl (Řetězová převodovka) a nastavíme množství na 1 ks (minimum má 2)
-skladCykloServisu[0].skladoveMnozstvi = 1;
-// Vyzkoušíme filtr nedostatkových dílů
-const dilyKObjednani = ziskejDilyPodMinimem();
-console.log(`Počet dílů pod minimem: ${dilyKObjednani.length}`);
-dilyKObjednani.forEach(d => console.log(` -> NUTNO OBJEDNAT: ${d.nazev} (Na skladě: ${d.skladoveMnozstvi}ks / Min: ${d.minimalniStav}ks)`));
-// Vyzkoušíme funkci pro formulář - majitel přidává přes web nové zboží
-naskladniNovyZcelaUnikatniDil({
-    id: 99,
-    typ: "spotrebni",
-    nazev: "Brzdová kapalina DOT 4",
-    nakupniCena: 190,
-    minimalniStav: 2,
-    objemMl: 250
-}, 10);
-// Ověříme, že se hodnota skladu po přidání nového zboží přepočítala a zvýšila
-console.log(`Nová celková hodnota skladu: ${vypocitejCelkovouHodnotuSkladu()} Kč`);
-console.log("\nVýpis skladu");
-skladCykloServisu.forEach(dil => {
-    console.log(dil.vypisDetail());
 });
+// Globální ovládání pro tlačíka přímo v tabulce
+window.upravMnozstviNaWebu = (id, zmena) => {
+    const nalezenyDil = skladCykloServisu.find(d => d.id === id);
+    if (nalezenyDil) {
+        nalezenyDil.skladoveMnozstvi += zmena;
+        aktualizujWeboveRozhrani();
+    }
+};
+// PRVNÍ SPUŠTĚNÍ WEBU
+aktualizujWeboveRozhrani();

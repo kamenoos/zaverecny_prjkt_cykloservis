@@ -1,12 +1,103 @@
 <!DOCTYPE html>
 <html lang="cs">
-<title>CykloSklad - Test v konzoli</title>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CykloSklad – Správa zásob</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:,">
 </head>
 <body>
-    <h1>CykloSklad - konzole</h1>
+
+    <header>
+        <h1>CykloSklad</h1>
+        <p>Systém pro evidenci skladových zásob cykloservisu</p>
+    </header>
+
+    <main class="hlavni-kontejner">
+        
+        <section class="statistiky-sekce">
+            <div class="karta-statistika">
+                <h3>Celková hodnota skladu</h3>
+                <p id="stats-celkova-hodnota">0 Kč</p>
+            </div>
+            <div class="karta-statistika kriticka">
+                <h3>Díly k objednání (pod minimem)</h3>
+                <p id="stats-pocet-kritickych">0 ks</p>
+            </div>
+        </section>
+
+        <div class="obsah-mrizka">
+            
+            <aside class="formular-sekce">
+                <h2>Naskladnit nový díl</h2>
+                <form id="sklad-form">
+                    <div class="form-skupina">
+                        <label for="form-typ">Typ komponentu:</label>
+                        <select id="form-typ" required>
+                            <option value="mechanicky">Mechanický díl</option>
+                            <option value="spotrebni">Spotřební materiál</option>
+                            <option value="elektro">Elektro komponent</option>
+                        </select>
+                    </div>
+
+                    <div class="form-skupina">
+                        <label for="form-nazev">Název dílu:</label>
+                        <input type="text" id="form-nazev" placeholder="Např. Řetěz Shimano HG-54" required>
+                    </div>
+
+                    <div class="form-skupina">
+                        <label for="form-cena">Nákupní cena (Kč):</label>
+                        <input type="number" id="form-cena" min="1" placeholder="Např. 350" required>
+                    </div>
+
+                    <div class="form-skupina">
+                        <label for="form-minimum">Minimální stav (ks):</label>
+                        <input type="number" id="form-minimum" min="1" placeholder="Např. 5" required>
+                    </div>
+
+                    <div class="form-skupina">
+                        <label for="form-mnozstvi">Počáteční množství (ks):</label>
+                        <input type="number" id="form-mnozstvi" min="0" value="5" required>
+                    </div>
+
+                    <button type="submit" id="btn-odeslat">Přidat na sklad</button>
+                </form>
+            </aside>
+
+            <section class="tabulka-sekce">
+                <h2>Aktuální stav skladu</h2>
+                
+                <div class="filtry-boxy">
+                    <button class="btn-filtr aktivni" data-filtr="vse">Vše</button>
+                    <button class="btn-filtr" data-filtr="mechanicky">Mechanika</button>
+                    <button class="btn-filtr" data-filtr="spotrebni">Spotřebák</button>
+                    <button class="btn-filtr" data-filtr="elektro">Elektro</button>
+                    <button class="btn-filtr" data-filtr="kriticke">⚠️ K objednání</button>
+                </div>
+
+                <div class="tabulka-obal">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Typ</th>
+                                <th>Název</th>
+                                <th>Množství</th>
+                                <th>Min. stav</th>
+                                <th>Koncová cena / ks</th>
+                                <th>Specifické detaily</th>
+                                <th>Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sklad-tabulka-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
     <script type="module" src="script.js"></script>
 </body>
 </html>
