@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CykloSklad – Správa zásob</title>
+    <title>CykloSklad Pro – Správa zásob</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:,">
 </head>
 <body>
 
     <header>
-        <h1>CykloSklad</h1>
-        <p>Systém pro evidenci skladových zásob cykloservisu</p>
+        <h1>CykloSklad Pro</h1>
+        <p>Interní systém pro evidenci skladových zásob cykloservisu</p>
     </header>
 
     <main class="hlavni-kontejner">
@@ -61,6 +61,40 @@
                         <input type="number" id="form-mnozstvi" min="0" value="5" required>
                     </div>
 
+                    <div class="form-skupina">
+                        <label for="form-poznamka">Poznámka (volitelné):</label>
+                        <input type="text" id="form-poznamka" placeholder="Např. Dodavatel Alza, regál 3...">
+                    </div>
+
+                    <div id="specificka-policka">
+                        <div class="form-skupina" id="box-material">
+                            <label for="form-material">Materiál:</label>
+                            <input type="text" id="form-material" placeholder="Např. ocel / hliník">
+                        </div>
+                        <div class="form-skupina" id="box-hmotnost">
+                            <label for="form-hmotnost">Hmotnost (g):</label>
+                            <input type="number" id="form-hmotnost" placeholder="Např. 150">
+                        </div>
+
+                        <div class="form-skupina skryty" id="box-zivotnost">
+                            <label for="form-zivotnost">Životnost (km):</label>
+                            <input type="number" id="form-zivotnost" placeholder="Např. 2000">
+                        </div>
+                        <div class="form-skupina skryty" id="box-objem">
+                            <label for="form-objem">Objem (ml):</label>
+                            <input type="number" id="form-objem" placeholder="Např. 100">
+                        </div>
+
+                        <div class="form-skupina skryty" id="box-kapacita">
+                            <label for="form-kapacita">Kapacita (Wh):</label>
+                            <input type="number" id="form-kapacita" placeholder="Např. 625">
+                        </div>
+                        <div class="form-skupina skryty" id="box-firmware">
+                            <label for="form-firmware">Verze firmwaru:</label>
+                            <input type="text" id="form-firmware" placeholder="Např. 1.0.0">
+                        </div>
+                    </div>
+
                     <button type="submit" id="btn-odeslat">Přidat na sklad</button>
                 </form>
             </aside>
@@ -84,13 +118,12 @@
                                 <th>Název</th>
                                 <th>Množství</th>
                                 <th>Min. stav</th>
-                                <th>Koncová cena / ks</th>
+                                <th>Koncová cena</th>
                                 <th>Specifické detaily</th>
-                                <th>Akce</th>
+                                <th>Poznámka</th> <th>Akce</th>
                             </tr>
                         </thead>
-                        <tbody id="sklad-tabulka-body">
-                            </tbody>
+                        <tbody id="sklad-tabulka-body"></tbody>
                     </table>
                 </div>
             </section>

@@ -1,11 +1,14 @@
 import { KATALOG_DILU } from './data.js';
-// logika kodu oop
+// ==========================================
+// 1. TŘÍDY A MODELY (OOP)
+// ==========================================
 class ZakladniDil {
     id;
     nazev;
     minimalniStav;
     _skladoveMnozstvi = 0;
     _nakupniCena;
+    poznamka = ""; // Každý díl teď může mít poznámku
     constructor(id, nazev, nakupniCena, minimalniStav) {
         this.id = id;
         this.nazev = nazev;
@@ -15,28 +18,23 @@ class ZakladniDil {
         }
         this.nakupniCena = nakupniCena;
     }
-    //Getter, setter a metoda pro kontrolu skladu
-    // Getter: Umožní programu zvenku bezpečně přečíst stav skladu
     get skladoveMnozstvi() {
         return this._skladoveMnozstvi;
     }
-    // Setter: Umožní měnit množství a rovnou hlídá, aby nebylo záporné
     set skladoveMnozstvi(hodnota) {
         if (hodnota < 0) {
             this._skladoveMnozstvi = 0;
-            console.warn(`[Varování] Množství u "${this.nazev}" nemůže být záporné. Nastavuji 0.`);
         }
         else {
             this._skladoveMnozstvi = hodnota;
         }
     }
-    //Zjistí, zda aktuální stav klesl pod minimum
     jePotrebaObjednat() {
         return this._skladoveMnozstvi < this.minimalniStav;
     }
     set nakupniCena(hodnota) {
         if (hodnota <= 0) {
-            console.warn(`[Varování] Cena u "${this.nazev}" je neplatná (${hodnota} Kč). Nastavuji na 1 Kč.`);
+            console.warn(`[Varování] Cena u "${this.nazev}" je neplatná. Nastavuji na 1 Kč.`);
             this._nakupniCena = 1;
         }
         else {
@@ -60,12 +58,8 @@ class MechanickyDil extends ZakladniDil {
         this.material = material;
         this.hmotnost = hmotnost;
     }
-    vypocitejKoncovouCenu() {
-        return Math.round(this.nakupniCena * 1.25);
-    }
-    vypisDetail() {
-        return `[Mechanika] ${this.nazev} | Mat: ${this.material} | Váha: ${this.hmotnost}g | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
-    }
+    vypocitejKoncovouCenu() { return Math.round(this.nakupniCena * 1.25); }
+    vypisDetail() { return `[Mechanika] ${this.nazev}`; }
 }
 class SpotrebniMaterial extends ZakladniDil {
     zivotnostKm;
@@ -75,19 +69,8 @@ class SpotrebniMaterial extends ZakladniDil {
         this.zivotnostKm = zivotnostKm;
         this.objemMl = objemMl;
     }
-    vypocitejKoncovouCenu() {
-        return Math.round(this.nakupniCena * 1.40);
-    }
-    vypisDetail() {
-        let detail = `[Spotřebák] ${this.nazev} | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
-        if (this.zivotnostKm) {
-            detail += ` | Životnost: ${this.zivotnostKm}km`;
-        }
-        if (this.objemMl) {
-            detail += ` | Objem: ${this.objemMl}ml`;
-        }
-        return detail;
-    }
+    vypocitejKoncovouCenu() { return Math.round(this.nakupniCena * 1.40); }
+    vypisDetail() { return `[Spotřebák] ${this.nazev}`; }
 }
 class ElektroKomponent extends ZakladniDil {
     kapacitaWh;
@@ -98,17 +81,14 @@ class ElektroKomponent extends ZakladniDil {
         this.kapacitaWh = kapacitaWh;
         this.verzeFirmwaru = verzeFirmwaru;
     }
-    vypocitejKoncovouCenu() {
-        return Math.round((this.nakupniCena * 1.30) + this.RECYKLACNI_POPLATEK);
-    }
-    vypisDetail() {
-        return `[Elektro] ${this.nazev} | Baterie: ${this.kapacitaWh}Wh | FW: ${this.verzeFirmwaru} | Koncová cena: ${this.vypocitejKoncovouCenu()} Kč`;
-    }
+    vypocitejKoncovouCenu() { return Math.round((this.nakupniCena * 1.30) + this.RECYKLACNI_POPLATEK); }
+    vypisDetail() { return `[Elektro] ${this.nazev}`; }
 }
 // ==========================================
-// 4. INICIALIZACE A OŽIVENÍ DAT Z ČÍSELNÍKU
+// 2. INICIALIZACE SKLADU
 // ==========================================
 const skladCykloServisu = [];
+let aktualniFiltr = "vse";
 const katalog = KATALOG_DILU;
 katalog.forEach((surovaData) => {
     try {
@@ -125,89 +105,62 @@ katalog.forEach((surovaData) => {
         else {
             return;
         }
+        // Načtení poznámky z data.js (pokud tam nějaká je)
+        if (surovaData.poznamka) {
+            novyDil.poznamka = surovaData.poznamka;
+        }
         novyDil.pridatNaSklad(5);
         skladCykloServisu.push(novyDil);
     }
-    catch (error) {
-        console.error("Chyba při naskladnění z číselníku:", error);
+    catch (e) {
+        console.error(e);
     }
 });
 // ==========================================
-// 5. DOM ELEMENTY A GLOBÁLNÍ STAV FILTRU
+// 3. DOM ELEMENTY A FILTROVÁNÍ
 // ==========================================
-let aktualniFiltr = "vse"; // Tady si pamatujeme, co má tabulka zrovna ukazovat
 const htmlTabulkaBody = document.getElementById("sklad-tabulka-body");
 const htmlStatsHodnota = document.getElementById("stats-celkova-hodnota");
 const htmlStatsKriticke = document.getElementById("stats-pocet-kritickych");
 const formular = document.getElementById("sklad-form");
 const selectTyp = document.getElementById("form-typ");
-// Políčka formuláře
-const inputNazev = document.getElementById("form-nazev");
-const inputCena = document.getElementById("form-cena");
-const inputMinimum = document.getElementById("form-minimum");
-const inputMnozstvi = document.getElementById("form-mnozstvi");
-// Specifické boxy pro skrývání
 const boxMaterial = document.getElementById("box-material");
 const boxHmotnost = document.getElementById("box-hmotnost");
 const boxZivotnost = document.getElementById("box-zivotnost");
 const boxObjem = document.getElementById("box-objem");
 const boxKapacita = document.getElementById("box-kapacita");
 const boxFirmware = document.getElementById("box-firmware");
-// ==========================================
-// 6. LOGIKA FORMULÁŘE (Skrývání políček podle typu)
-// ==========================================
 selectTyp.addEventListener("change", () => {
-    const zvolenyTyp = selectTyp.value;
-    boxMaterial.style.display = "none";
-    boxHmotnost.style.display = "none";
-    boxZivotnost.style.display = "none";
-    boxObjem.style.display = "none";
-    boxKapacita.style.display = "none";
-    boxFirmware.style.display = "none";
-    if (zvolenyTyp === "mechanicky") {
-        boxMaterial.style.display = "block";
-        boxHmotnost.style.display = "block";
-    }
-    else if (zvolenyTyp === "spotrebni") {
-        boxZivotnost.style.display = "block";
-        boxObjem.style.display = "block";
-    }
-    else if (zvolenyTyp === "elektro") {
-        boxKapacita.style.display = "block";
-        boxFirmware.style.display = "block";
-    }
+    const t = selectTyp.value;
+    boxMaterial.style.display = t === "mechanicky" ? "block" : "none";
+    boxHmotnost.style.display = t === "mechanicky" ? "block" : "none";
+    boxZivotnost.style.display = t === "spotrebni" ? "block" : "none";
+    boxObjem.style.display = t === "spotrebni" ? "block" : "none";
+    boxKapacita.style.display = t === "elektro" ? "block" : "none";
+    boxFirmware.style.display = t === "elektro" ? "block" : "none";
 });
-// ==========================================
-// 7. OŽIVENÍ FILTRŮ (To, co minule chybělo!)
-// ==========================================
-const tlacitkaFiltru = document.querySelectorAll(".btn-filtr");
-tlacitkaFiltru.forEach(tlacitko => {
+document.querySelectorAll(".btn-filtr").forEach(tlacitko => {
     tlacitko.addEventListener("click", () => {
-        // Aktivní vizuální třídu vezmeme všem a dáme ji jen tomu, na které se kliklo
-        tlacitkaFiltru.forEach(btn => btn.classList.remove("aktivni"));
+        document.querySelectorAll(".btn-filtr").forEach(b => b.classList.remove("aktivni"));
         tlacitko.classList.add("aktivni");
-        // Uložíme si hodnotu filtru (vse, mechanicky, spotrebni, elektro, kriticke)
         aktualniFiltr = tlacitko.getAttribute("data-filtr") || "vse";
-        // Překreslíme tabulku podle nového filtru
         aktualizujWeboveRozhrani();
     });
 });
 // ==========================================
-// 8. VYKRESLENÍ INTERFACOVÉHO UI (S podporou filtrů)
+// 4. VYKRESLOVÁNÍ UI (Tabulka s poznámkou a smazáním)
 // ==========================================
 function aktualizujWeboveRozhrani() {
     htmlTabulkaBody.innerHTML = "";
-    let celkovaHodnotaSkladu = 0;
-    let pocetKritickychDilu = 0;
+    let celkovaHodnota = 0;
+    let pocetKritickych = 0;
     skladCykloServisu.forEach(dil => {
-        const rizikovyStav = dil.jePotrebaObjednat();
-        // Statistiky počítáme VŽDY z celého skladu, bez ohledu na zapnutý filtr
-        if (rizikovyStav)
-            pocetKritickychDilu++;
-        celkovaHodnotaSkladu += dil.skladoveMnozstvi * dil.vypocitejKoncovouCenu();
-        // KROK FILTROVÁNÍ: Pokud položka neodpovídá filtru, přeskočíme ji a nevykreslíme
+        const jeKriticky = dil.jePotrebaObjednat();
+        if (jeKriticky)
+            pocetKritickych++;
+        celkovaHodnota += dil.skladoveMnozstvi * dil.vypocitejKoncovouCenu();
         if (aktualniFiltr !== "vse") {
-            if (aktualniFiltr === "kriticke" && !rizikovyStav)
+            if (aktualniFiltr === "kriticke" && !jeKriticky)
                 return;
             if (aktualniFiltr === "mechanicky" && !(dil instanceof MechanickyDil))
                 return;
@@ -216,87 +169,96 @@ function aktualizujWeboveRozhrani() {
             if (aktualniFiltr === "elektro" && !(dil instanceof ElektroKomponent))
                 return;
         }
-        let specifickyText = "";
-        if (dil instanceof MechanickyDil) {
-            specifickyText = `Mat: ${dil.material}, Váha: ${dil.hmotnost}g`;
-        }
-        else if (dil instanceof SpotrebniMaterial) {
-            const ziv = dil.zivotnostKm ? `${dil.zivotnostKm}km` : "-";
-            const obj = dil.objemMl ? `${dil.objemMl}ml` : "-";
-            specifickyText = `Životnost: ${ziv}, Obj: ${obj}`;
-        }
-        else if (dil instanceof ElektroKomponent) {
-            specifickyText = `Kapacita: ${dil.kapacitaWh}Wh, FW: ${dil.verzeFirmwaru}`;
-        }
+        let spec = "";
+        if (dil instanceof MechanickyDil)
+            spec = `Mat: ${dil.material}, Váha: ${dil.hmotnost}g`;
+        else if (dil instanceof SpotrebniMaterial)
+            spec = `Životnost: ${dil.zivotnostKm || '-'}km, Obj: ${dil.objemMl || '-'}ml`;
+        else if (dil instanceof ElektroKomponent)
+            spec = `Kap: ${dil.kapacitaWh}Wh, FW: ${dil.verzeFirmwaru}`;
         const radek = document.createElement("tr");
-        if (rizikovyStav) {
-            radek.style.backgroundColor = "#ffdddd"; // Červený řádek pro kritické zboží
-        }
+        if (jeKriticky)
+            radek.style.backgroundColor = "#ffdddd";
         radek.innerHTML = `
-            <td><strong>${dil.constructor.name.replace("Dil", "").replace("Komponent", "")}</strong></td>
+            <td><strong>${dil.constructor.name.replace("Dil", "").replace("Material", "")}</strong></td>
             <td>${dil.nazev}</td>
             <td>${dil.skladoveMnozstvi} ks</td>
             <td>${dil.minimalniStav} ks</td>
             <td>${dil.vypocitejKoncovouCenu()} Kč</td>
-            <td><small>${specifickyText}</small></td>
-            <td>
+            <td><small>${spec}</small></td>
+            <td><small>${dil.poznamka || "-"}</small></td> <td>
                 <button class="btn-akce" onclick="upravMnozstviNaWebu(${dil.id}, 1)">+</button>
                 <button class="btn-akce" onclick="upravMnozstviNaWebu(${dil.id}, -1)">-</button>
-            </td>
+                <button class="btn-akce" style="background-color: #ffeaea; color: red;" onclick="smazatDilNaWebu(${dil.id})">❌</button> </td>
         `;
         htmlTabulkaBody.appendChild(radek);
     });
-    htmlStatsHodnota.innerText = `${celkovaHodnotaSkladu.toLocaleString()} Kč`;
-    htmlStatsKriticke.innerText = `${pocetKritickychDilu} ks`;
+    htmlStatsHodnota.innerText = `${celkovaHodnota.toLocaleString()} Kč`;
+    htmlStatsKriticke.innerText = `${pocetKritickych} ks`;
 }
 // ==========================================
-// 9. ZPRACOVÁNÍ FORMULÁŘE (Bezpečně s try-catch)
+// 5. ODESLÁNÍ FORMULÁŘE (Včetně uložení poznámky)
 // ==========================================
 formular.addEventListener("submit", (event) => {
     event.preventDefault();
     try {
-        const id = Date.now();
+        const getInp = (id) => {
+            const el = document.getElementById(id);
+            if (!el)
+                throw new Error(`Nenalezeno políčko: ${id}`);
+            return el;
+        };
+        const nazev = getInp("form-nazev").value;
+        const cena = Number(getInp("form-cena").value);
+        const minimum = Number(getInp("form-minimum").value);
+        const mnozstvi = Number(getInp("form-mnozstvi").value);
+        const poznamkaText = getInp("form-poznamka").value; // Načtení poznámky
         const typ = selectTyp.value;
-        const nazev = inputNazev.value;
-        const cena = Number(inputCena.value);
-        const minimum = Number(inputMinimum.value);
-        const mnozstvi = Number(inputMnozstvi.value);
+        const id = Date.now();
         let novyDil;
         if (typ === "mechanicky") {
-            const mat = document.getElementById("form-material").value || "neurčeno";
-            const vah = Number(document.getElementById("form-hmotnost").value) || 0;
-            novyDil = new MechanickyDil(id, nazev, cena, minimum, mat, vah);
+            novyDil = new MechanickyDil(id, nazev, cena, minimum, getInp("form-material").value || "neurčeno", Number(getInp("form-hmotnost").value) || 0);
         }
         else if (typ === "spotrebni") {
-            const ziv = document.getElementById("form-zivotnost").value ? Number(document.getElementById("form-zivotnost").value) : undefined;
-            const obj = document.getElementById("form-objem").value ? Number(document.getElementById("form-objem").value) : undefined;
+            const ziv = getInp("form-zivotnost").value ? Number(getInp("form-zivotnost").value) : undefined;
+            const obj = getInp("form-objem").value ? Number(getInp("form-objem").value) : undefined;
             novyDil = new SpotrebniMaterial(id, nazev, cena, minimum, ziv, obj);
         }
         else {
-            const kap = Number(document.getElementById("form-kapacita").value) || 0;
-            const fmw = document.getElementById("form-firmware").value || "1.0.0";
-            novyDil = new ElektroKomponent(id, nazev, cena, minimum, kap, fmw);
+            novyDil = new ElektroKomponent(id, nazev, cena, minimum, Number(getInp("form-kapacita").value) || 0, getInp("form-firmware").value || "1.0.0");
         }
-        novyDil.pridatNaSklad(mnozstvi);
+        novyDil.skladoveMnozstvi = mnozstvi;
+        novyDil.poznamka = poznamkaText; // Zápis poznámky do objektu
         skladCykloServisu.push(novyDil);
-        // Reset a vyčištění formuláře po úspěšném přidání
         formular.reset();
         selectTyp.dispatchEvent(new Event("change"));
-        // Okamžité překreslení
         aktualizujWeboveRozhrani();
     }
-    catch (error) {
-        // Pokud například zadáš prázdný název, chytí se to tady a vyskočí alert, takže uživatel ví, co se děje
-        alert(`Chyba při přidávání dílu: ${error.message}`);
+    catch (e) {
+        alert(`Chyba: ${e.message}`);
     }
 });
-// Globální ovládání pro tlačíka přímo v tabulce
+// ==========================================
+// 6. GLOBÁLNÍ FUNKCE (Tlačítka z tabulky)
+// ==========================================
+// Plus a Mínus
 window.upravMnozstviNaWebu = (id, zmena) => {
-    const nalezenyDil = skladCykloServisu.find(d => d.id === id);
-    if (nalezenyDil) {
-        nalezenyDil.skladoveMnozstvi += zmena;
+    const d = skladCykloServisu.find(x => x.id === id);
+    if (d) {
+        d.skladoveMnozstvi += zmena;
         aktualizujWeboveRozhrani();
     }
 };
-// PRVNÍ SPUŠTĚNÍ WEBU
+// Funkce pro smazání dílu
+window.smazatDilNaWebu = (id) => {
+    if (confirm("Opravdu chcete tento díl trvale smazat ze skladu?")) {
+        const index = skladCykloServisu.findIndex(d => d.id === id);
+        if (index !== -1) {
+            skladCykloServisu.splice(index, 1); // Odstraní 1 prvek na daném indexu
+            aktualizujWeboveRozhrani(); // Okamžitě se to projeví v tabulce i statistikách
+        }
+    }
+};
+// PRVNÍ SPUŠTĚNÍ
+selectTyp.dispatchEvent(new Event("change"));
 aktualizujWeboveRozhrani();
