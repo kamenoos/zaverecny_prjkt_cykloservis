@@ -1,0 +1,342 @@
+/* ========================================
+   RESET
+======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f4f7fa;
+    color: #222;
+    line-height: 1.5;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+header {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15);
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: .4rem;
+}
+
+header p {
+    opacity: .9;
+}
+
+/* ========================================
+   LAYOUT
+======================================== */
+
+.hlavni-kontejner {
+    max-width: 1600px;
+    margin: auto;
+    padding: 1.5rem;
+}
+
+.obsah-mrizka {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ========================================
+   STATISTIKY
+======================================== */
+
+.statistiky-sekce {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.karta-statistika {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+}
+
+.karta-statistika h3 {
+    font-size: .95rem;
+    color: #666;
+    margin-bottom: .6rem;
+}
+
+.karta-statistika p {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.karta-statistika.kriticka {
+    border-left: 6px solid #dc3545;
+}
+
+/* ========================================
+   PANELY
+======================================== */
+
+.formular-sekce,
+.tabulka-sekce {
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+}
+
+.formular-sekce h2,
+.tabulka-sekce h2 {
+    margin-bottom: 1rem;
+}
+
+/* ========================================
+   FORMULÁŘ
+======================================== */
+
+.form-skupina {
+    margin-bottom: 14px;
+}
+
+.form-skupina label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    transition: .2s;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13,110,253,.15);
+}
+
+/* ========================================
+   BUTTONY
+======================================== */
+
+button {
+    cursor: pointer;
+    border: none;
+    transition: .2s;
+}
+
+#btn-odeslat {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: #198754;
+    color: white;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#btn-odeslat:hover {
+    background: #157347;
+}
+
+.btn-export {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    background: #0d6efd;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-export:hover {
+    background: #0b5ed7;
+}
+
+/* ========================================
+   FILTRY
+======================================== */
+
+.filtry-boxy {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.btn-filtr {
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #edf2f7;
+    font-weight: 600;
+}
+
+.btn-filtr:hover {
+    background: #dce6f5;
+}
+
+.btn-filtr.aktivni {
+    background: #0d6efd;
+    color: white;
+}
+
+/* ========================================
+   TABULKA
+======================================== */
+
+.tabulka-obal {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+thead {
+    background: #f8f9fa;
+}
+
+th {
+    text-align: left;
+    padding: 14px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #ececec;
+    vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: #f8fbff;
+}
+
+/* ========================================
+   KRITICKÉ ŘÁDKY
+======================================== */
+
+.kriticky-radek {
+    background: #fff2f2;
+}
+
+.kriticky-radek:hover {
+    background: #ffe7e7;
+}
+
+/* ========================================
+   AKČNÍ TLAČÍTKA
+======================================== */
+
+.btn-akce {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #e9ecef;
+    margin: 2px;
+}
+
+.btn-akce:hover {
+    transform: translateY(-1px);
+}
+
+.btn-edit {
+    background: #fff4cc;
+}
+
+.btn-ulozit {
+    background: #d1f7d6;
+}
+
+/* ========================================
+   INLINE EDITACE
+======================================== */
+
+.edit-input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+/* ========================================
+   SCROLLBAR
+======================================== */
+
+::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #bfc6d1;
+    border-radius: 10px;
+}
+
+/* ========================================
+   TABLET
+======================================== */
+
+@media (max-width: 1100px) {
+
+    .obsah-mrizka {
+        grid-template-columns: 1fr;
+    }
+
+    .formular-sekce {
+        order: -1;
+    }
+}
+
+/* ========================================
+   MOBIL
+======================================== */
+
+@media (max-width: 768px) {
+
+    header {
+        padding: 1.5rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .hlavni-kontejner {
+        padding: 1rem;
+    }
+
+    .karta-statistika p {
+        font-size: 1.4rem;
+    }
+
+    .filtry-boxy {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .btn-filtr {
+        width: 100%;
+    }
+
+    table {
+        min-width: 750px;
+    }
+}

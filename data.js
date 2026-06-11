@@ -83,7 +83,7 @@ export const KATALOG_DILU = [
         nazev: "Displej Garmin Edge",
         nakupniCena: 1200,
         minimalniStav: 2,
-        kapacitaWh: 0,  // chyba: kapacita 0 (možná neplatná, ale kód to nevaliduje přímo)
-        verzeFirmwaru: ""  // chyba: prázdná verze
+        kapacitaWh: 0,
+        verzeFirmwaru: ""
     }
-]
+];
